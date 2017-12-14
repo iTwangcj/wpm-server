@@ -15,6 +15,7 @@
 		"array-first": "^1.0.2",
 		"chalk": "^2.3.0",
 		"chokidar": "^1.7.0",
+		"fs-extra": "^5.0.0",
 		"lodash": "^4.17.4",
 		"shelljs": "^0.7.8",
 		"socket.io": "^2.0.4"

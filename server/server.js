@@ -4,6 +4,7 @@ const io = require('socket.io').listen(3000);
 const chokidar = require('chokidar');
 const path = require('path');
 const fs = require('fs');
+const fse = require('fs-extra');
 const _ = require('lodash');
 const execSync = require('child_process').execSync;
 const users = require('./db').users;
@@ -11,6 +12,7 @@ const cryptHelper = require('./cryptHelper');
 
 const node_modules = 'node_modules';
 const downloadPath = path.resolve(__dirname, '../download');
+fse.ensureDirSync(path.join(__dirname, downloadPath)); // 文件目录不存在则创建
 
 //去除左右空格
 const trim = (str) => {
