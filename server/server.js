@@ -17,6 +17,8 @@ const getUser = (username) => {
 	return users.filter(user => username === user.username)[0] || {};
 };
 
+console.log('Server init successful.');
+
 io.sockets.on('connection', (conn) => {
 	let user = {};
 	const loginValidate = (data) => {
