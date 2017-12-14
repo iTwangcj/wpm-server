@@ -74,10 +74,7 @@ const handleCommand = (conn, params, username) => {
 		for (const filePath of files) {
 			sendDataToClient(conn, filePath, params.node_modules_path);
 		}
-		if (files.length) {
-			global.rm('-Rf', userPath);
-			conn.emit('result', result);
-		}
+		conn.emit('result', result);
 	})
 	// error catch
 	.catch(e => {
