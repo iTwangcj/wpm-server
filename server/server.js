@@ -103,8 +103,12 @@ const handleCommand = (conn, params, username) => {
 			count += 1;
 			sendDataToClient(conn, filePath, params.node_modules_path);
 		})
-		.on('unlink', path => log(`File ${path} has been removed`))
-		.on('error', error => log(`Watcher error: ${error}`))
+		.on('unlink', path => {
+			log(`File ${path} has been removed`);
+		})
+		.on('error', error => {
+			log(`Watcher error: ${error}`);
+		})
 		.on('ready', () => {
 			log('Initial scan complete. Ready for changes');
 			// 获得当前文件夹下的所有的文件夹和文件
@@ -114,9 +118,9 @@ const handleCommand = (conn, params, username) => {
 				num++;
 				if (files.length >= count || num === 100) {
 					clearInterval(timer);
-					// global.rm('-Rf', userPath);
+					global.rm('-Rf', userPath);
 					// Un-watch some files.
-					// watcher.unwatch(watchPath);
+					watcher.unwatch(watchPath);
 					conn.emit('result', result);
 				}
 			}, 500);
