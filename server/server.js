@@ -23,7 +23,7 @@ const getUser = (username) => {
 };
 
 io.sockets.on('connection', (conn) => {
-	let user = null;
+	let user = {};
 	const loginValidate = (data) => {
 		user = getUser(data.username);
 		if (!user) {
@@ -42,11 +42,13 @@ io.sockets.on('connection', (conn) => {
 		conn.emit('login_success', cryptHelper.encrypt(JSON.stringify(data)));
 	});
 	conn.on('data', function ({ authInfo, params }) {
-		// console.log('client Request data: %s', data);
-		// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
-		const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
-		if (loginValidate(jsonData)) return;
-		handleCommand(conn, params, user.username);
+		if (authInfo && params) {
+			// console.log('client Request data: %s', data);
+			// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
+			const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
+			if (loginValidate(jsonData)) return;
+			handleCommand(conn, params, user.username);
+		}
 	});
 	conn.on('disconnect', function () {
 		console.log('socket disconnect username: %s', user.username);
