@@ -1,0 +1,17 @@
+{
+	"name": "wpm-server",
+	"version": "1.0.0",
+	"description": "wpm-server",
+	"main": "index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/iTwangcj/wpm-server.git"
+	},
+	"author": "itwang <itwangcj@gmail.com> ",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/iTwangcj/wpm-server/issues"
+	},
+	"homepage": "https://github.com/iTwangcj/wpm-server#readme",
+	"dependencies": {}
+}

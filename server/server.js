@@ -1,7 +1,6 @@
 require('shelljs/global');
 const chalk = require('chalk');
 const io = require('socket.io').listen(3000);
-const chokidar = require('chokidar');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -9,29 +8,11 @@ const _ = require('lodash');
 const execSync = require('child_process').execSync;
 const users = require('./db').users;
 const cryptHelper = require('./cryptHelper');
+const packageStr = require('./packageTemplate');
 
 const node_modules = 'node_modules';
 const downloadPath = path.resolve(__dirname, '../download');
 fse.ensureDirSync(downloadPath); // 文件目录不存在则创建
-
-const packageStr = `
-{
-	"name": "wpm-server",
-	"version": "1.0.0",
-	"description": "wpm-server",
-	"main": "index.js",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/iTwangcj/wpm-server.git"
-	},
-	"author": "itwang <itwangcj@gmail.com> ",
-	"license": "ISC",
-	"bugs": {
-		"url": "https://github.com/iTwangcj/wpm-server/issues"
-	},
-	"homepage": "https://github.com/iTwangcj/wpm-server#readme",
-	"dependencies": {}
-}`;
 
 const getUser = (username) => {
 	return users.filter(user => username === user.username)[0] || {};
@@ -83,50 +64,23 @@ const handleCommand = (conn, params, username) => {
 	.then(() => global.rm('-Rf', userPath))
 	.then(() => global.mkdir(userPath))
 	.then(() => global.mkdir(watchPath))
-	.then(() => fs.writeFileSync(path.resolve(userPath, 'package.json'), packageStr))
-	.then(() => {
-		const watcher = chokidar.watch(watchPath);
-		const log = console.log.bind(console);
-		// Add event listeners.
-		watcher
-		.on('add', filePath => {
-			count += 1;
-			sendDataToClient(conn, filePath, params.node_modules_path);
-		})
-		.on('change', filePath => {
-			count += 1;
-			sendDataToClient(conn, filePath, params.node_modules_path);
-		})
-		.on('unlink', path => {
-			log(`File ${path} has been removed`);
-		})
-		.on('error', error => {
-			log(`Watcher error: ${error}`);
-		})
-		.on('ready', () => {
-			// log('Initial scan complete. Ready for changes');
-			// 获得当前文件夹下的所有的文件夹和文件
-			const files = getAllFiles(watchPath);
-			if (files.length) {
-				let num = 0;
-				const timer = setInterval(() => {
-					num++;
-					if (files.length >= count || num === 100) {
-						clearInterval(timer);
-						// Un-watch some files.
-						watcher.unwatch(watchPath);
-						global.rm('-Rf', userPath);
-						conn.emit('result', result);
-					}
-				}, 500);
-			}
-		});
-	})
+	.then(() => fs.writeFileSync(path.resolve(userPath, 'package.json'), JSON.stringify(packageStr, null, 4)))
 	.then(() => global.cd(userPath))
 	.then(() => {
 		if (params.command.toLowerCase() !== 'login') {
 			console.log(`npm ${params.command}`);
 			result = execSync(`npm ${params.command}`).toString();
+		}
+	})
+	.then(() => {
+		// 获得当前文件夹下的所有的文件夹和文件
+		const files = getAllFiles(watchPath);
+		for (const filePath of files) {
+			sendDataToClient(conn, filePath, params.node_modules_path);
+		}
+		if (files.length) {
+			// global.rm('-Rf', userPath);
+			conn.emit('result', result);
 		}
 	})
 	// error catch
