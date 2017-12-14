@@ -12,7 +12,7 @@ const cryptHelper = require('./cryptHelper');
 
 const node_modules = 'node_modules';
 const downloadPath = path.resolve(__dirname, '../download');
-fse.ensureDirSync(path.join(__dirname, downloadPath)); // 文件目录不存在则创建
+fse.ensureDirSync(downloadPath); // 文件目录不存在则创建
 
 //去除左右空格
 const trim = (str) => {
