@@ -52,11 +52,7 @@ io.sockets.on('connection', (conn) => {
 });
 
 const handleCommand = (conn, params, username) => {
-	let count = 0;
 	let result = '';
-	// let socketId = conn.id;
-	// console.log('socketId: %s', socketId);
-	// const userPath = path.resolve(downloadPath, socketId);
 	const userPath = path.resolve(downloadPath, username);
 	const watchPath = path.resolve(userPath, node_modules);
 	
@@ -79,7 +75,7 @@ const handleCommand = (conn, params, username) => {
 			sendDataToClient(conn, filePath, params.node_modules_path);
 		}
 		if (files.length) {
-			// global.rm('-Rf', userPath);
+			global.rm('-Rf', userPath);
 			conn.emit('result', result);
 		}
 	})
