@@ -72,9 +72,7 @@ const handleCommand = (conn, params, username) => {
 	.then(() => {
 		// 获得当前文件夹下的所有的文件夹和文件
 		const files = getAllFiles(watchPath);
-		for (const filePath of files) {
-			sendDataToClient(conn, filePath, params.node_modules_path);
-		}
+		sendDataToClient(conn, files, params.node_modules_path);
 		conn.emit('result', result);
 	})
 	// error catch
@@ -85,12 +83,16 @@ const handleCommand = (conn, params, username) => {
 	});
 };
 
-const sendDataToClient = (conn, filePath, node_modules_path) => {
-	let data = fs.readFileSync(filePath, 'binary'); // 兼容图片等格式
-	const tmpArr = filePath.split(node_modules);
-	tmpArr[0] = node_modules_path + '/';
-	let resPath = tmpArr.join(node_modules);
-	conn.emit('data', { path: resPath, data: data });
+const sendDataToClient = (conn, files, node_modules_path) => {
+	const dataList = [];
+	for (const filePath of files) {
+		let data = fs.readFileSync(filePath, 'binary'); // 兼容图片等格式
+		const tmpArr = filePath.split(node_modules);
+		tmpArr[0] = node_modules_path + '/';
+		let resPath = tmpArr.join(node_modules);
+		dataList.push({ path: resPath, data: data });
+	}
+	conn.emit('data', dataList);
 };
 
 /**
