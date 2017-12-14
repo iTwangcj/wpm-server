@@ -10,7 +10,7 @@ const users = require('./db').users;
 const cryptHelper = require('./cryptHelper');
 
 const node_modules = 'node_modules';
-const downloadPath = path.resolve(__dirname, '../../download');
+const downloadPath = path.resolve(__dirname, '../download');
 
 //去除左右空格
 const trim = (str) => {
@@ -41,24 +41,25 @@ io.sockets.on('connection', (conn) => {
 		if (loginValidate(data)) return;
 		conn.emit('login_success', cryptHelper.encrypt(JSON.stringify(data)));
 	});
-	conn.on('data', function (data) {
+	conn.on('data', function ({ authInfo, params }) {
 		// console.log('client Request data: %s', data);
-		console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(data));
-		const jsonData = JSON.parse(cryptHelper.decrypt(data));
+		// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
+		const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
 		if (loginValidate(jsonData)) return;
-		handleCommand(conn);
+		handleCommand(conn, params, user.username);
 	});
 	conn.on('disconnect', function () {
 		console.log('socket disconnect username: %s', user.username);
 	});
 });
 
-const handleCommand = (conn) => {
+const handleCommand = (conn, params, username) => {
 	let count = 0;
 	let result = '';
-	let socketId = conn.id;
+	// let socketId = conn.id;
 	// console.log('socketId: %s', socketId);
-	const userPath = path.resolve(downloadPath, socketId);
+	// const userPath = path.resolve(downloadPath, socketId);
+	const userPath = path.resolve(downloadPath, username);
 	const watchPath = path.resolve(userPath, node_modules);
 	
 	return Promise.resolve()
@@ -72,11 +73,11 @@ const handleCommand = (conn) => {
 		watcher
 		.on('add', filePath => {
 			count += 1;
-			sendDataToClient(conn, filePath);
+			sendDataToClient(conn, filePath, params.node_modules_path);
 		})
 		.on('change', filePath => {
 			count += 1;
-			sendDataToClient(conn, filePath);
+			sendDataToClient(conn, filePath, params.node_modules_path);
 		})
 		.on('unlink', path => log(`File ${path} has been removed`))
 		.on('error', error => log(`Watcher error: ${error}`))
@@ -89,7 +90,7 @@ const handleCommand = (conn) => {
 				num++;
 				if (files.length >= count || num === 100) {
 					clearInterval(timer);
-					global.rm('-Rf', userPath);
+					// global.rm('-Rf', userPath);
 					// Un-watch some files.
 					watcher.unwatch(watchPath);
 					conn.emit('result', result);
@@ -98,8 +99,7 @@ const handleCommand = (conn) => {
 		});
 	})
 	.then(() => global.cd(userPath))
-	.then(() => result = execSync(`npm install array-first`).toString())
-	.then(() => initConsole())
+	.then(() => result = execSync(`npm ${params.command}`).toString())
 	// error catch
 	.catch(e => {
 		global.echo(chalk.red('Build failed. See below for errors.\n'));
@@ -108,14 +108,16 @@ const handleCommand = (conn) => {
 	});
 };
 
-const sendDataToClient = (conn, filePath) => {
-	// let data = fs.readFileSync(filePath, 'utf-8');
+const sendDataToClient = (conn, filePath, node_modules_path) => {
 	let data = fs.readFileSync(filePath, 'binary'); // 兼容图片等格式
-	const resPath = path.join(node_modules, filePath.split(node_modules)[1]);
+	const tmpArr = filePath.split(node_modules);
+	tmpArr[0] = node_modules_path + '/';
+	let resPath = tmpArr.join(node_modules);
 	conn.emit('data', { path: resPath, data: data });
-	
-	// 写入数据（binary）
-	// fs.writeFileSync(path.join(__dirname, 'test', path.basename(filePath)), data);
+};
+
+const isFile = (path) => {
+	return fs.existsSync(path) && fs.statSync(path).isFile();
 };
 
 
@@ -135,31 +137,4 @@ const getAllFiles = (dir) => {
 	};
 	iteration(dir);
 	return AllFiles;
-};
-
-
-const initConsole = () => {
-	process.stdin.setEncoding('utf8');
-	
-	// process.stdin.on('readable', () => {
-	// 	const chunk = process.stdin.read();
-	// 	if (chunk !== null) {
-	// 		// process.stdout.write(`data: ${chunk}`);
-	// 		console.log(`data: ${chunk}`);
-	// 	}
-	// });
-	
-	// const chunk = process.stdin.read();
-	// if (chunk !== null) {
-	// 	// process.stdout.write(`data: ${chunk}`);
-	// 	console.log(`data: ${chunk}`);
-	// }
-	//
-	// process.stdin.on('end', () => {
-	// 	process.stdout.write('end');
-	// });
-	
-	process.stdin.on('data', (chunk) => {
-		console.log(`data: ${chunk}`);
-	});
 };

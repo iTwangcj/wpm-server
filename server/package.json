@@ -12,6 +12,7 @@
 	"author": "itwang <itwangcj@gmail.com> ",
 	"license": "MIT",
 	"dependencies": {
+		"array-first": "^1.0.2",
 		"chalk": "^2.3.0",
 		"chokidar": "^1.7.0",
 		"lodash": "^4.17.4",
