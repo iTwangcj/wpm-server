@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
 const _ = require('lodash');
-const execSync = require('child_process').execSync;
 const users = require('./db').users;
 const cryptHelper = require('./cryptHelper');
 const packageStr = require('./packageTemplate');
@@ -65,7 +64,7 @@ const handleCommand = (conn, params, username) => {
 	.then(() => {
 		if (params.command.toLowerCase() !== 'login') {
 			console.log(`npm ${params.command}`);
-			result = execSync(`npm ${params.command}`).toString();
+			result = global.exec(`npm ${params.command}`).toString();
 		}
 	})
 	.then(() => {
