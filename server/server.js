@@ -20,6 +20,25 @@ const trim = (str) => {
 	return str.replace(/^\s+|\s+$/g, '');
 };
 
+const packageStr = `
+{
+	"name": "wpm-server",
+	"version": "1.0.0",
+	"description": "wpm-server",
+	"main": "index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/iTwangcj/wpm-server.git"
+	},
+	"author": "itwang <itwangcj@gmail.com> ",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/iTwangcj/wpm-server/issues"
+	},
+	"homepage": "https://github.com/iTwangcj/wpm-server#readme",
+	"dependencies": {}
+}`;
+
 const getUser = (username) => {
 	return users.filter(user => username === user.username)[0];
 };
@@ -70,6 +89,7 @@ const handleCommand = (conn, params, username) => {
 	.then(() => global.rm('-Rf', userPath))
 	.then(() => global.mkdir(userPath))
 	.then(() => global.mkdir(watchPath))
+	.then(() => fs.writeFileSync(path.resolve(userPath, 'package.json'), packageStr))
 	.then(() => {
 		const watcher = chokidar.watch(watchPath);
 		const log = console.log.bind(console);
@@ -119,11 +139,6 @@ const sendDataToClient = (conn, filePath, node_modules_path) => {
 	let resPath = tmpArr.join(node_modules);
 	conn.emit('data', { path: resPath, data: data });
 };
-
-const isFile = (path) => {
-	return fs.existsSync(path) && fs.statSync(path).isFile();
-};
-
 
 /**
  * 获取文件夹下面的所有的文件(包括子文件夹)

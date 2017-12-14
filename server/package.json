@@ -9,6 +9,9 @@
 	"keywords": [
 		"wpm-server"
 	],
+	"scripts": {
+		"start": "node server/server.js"
+	},
 	"author": "itwang <itwangcj@gmail.com> ",
 	"license": "MIT",
 	"dependencies": {
