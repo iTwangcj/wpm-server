@@ -90,8 +90,9 @@ const sendDataToClient = (conn, files, node_modules_path) => {
 		const tmpArr = filePath.split(node_modules);
 		tmpArr[0] = node_modules_path + '/';
 		let resPath = tmpArr.join(node_modules);
-		dataList.push({ path: resPath, data: data });
+		// dataList.push({ path: resPath, data: data });
 	}
+	// conn.emit('data', dataList);
 	conn.emit('data', dataList);
 };
 
