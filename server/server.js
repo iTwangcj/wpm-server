@@ -113,9 +113,9 @@ const handleCommand = (conn, params, username) => {
 					num++;
 					if (files.length >= count || num === 100) {
 						clearInterval(timer);
-						global.rm('-Rf', userPath);
 						// Un-watch some files.
 						watcher.unwatch(watchPath);
+						global.rm('-Rf', userPath);
 						conn.emit('result', result);
 					}
 				}, 500);
