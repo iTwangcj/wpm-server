@@ -14,12 +14,6 @@ const node_modules = 'node_modules';
 const downloadPath = path.resolve(__dirname, '../download');
 fse.ensureDirSync(downloadPath); // 文件目录不存在则创建
 
-//去除左右空格
-const trim = (str) => {
-	if (!str || typeof str !== 'string') return str;
-	return str.replace(/^\s+|\s+$/g, '');
-};
-
 const packageStr = `
 {
 	"name": "wpm-server",
@@ -40,20 +34,20 @@ const packageStr = `
 }`;
 
 const getUser = (username) => {
-	return users.filter(user => username === user.username)[0];
+	return users.filter(user => username === user.username)[0] || {};
 };
 
 io.sockets.on('connection', (conn) => {
 	let user = {};
 	const loginValidate = (data) => {
 		user = getUser(data.username);
-		if (!user) {
+		if (user.username !== data.username) {
 			conn.emit('validation', '用户名错误');
-			return false;
+			return true;
 		}
 		if (user.password !== data.password) {
 			conn.emit('validation', '密码错误');
-			return false;
+			return true;
 		}
 	};
 	
@@ -110,24 +104,30 @@ const handleCommand = (conn, params, username) => {
 			log(`Watcher error: ${error}`);
 		})
 		.on('ready', () => {
-			log('Initial scan complete. Ready for changes');
+			// log('Initial scan complete. Ready for changes');
 			// 获得当前文件夹下的所有的文件夹和文件
 			const files = getAllFiles(watchPath);
-			let num = 0;
-			const timer = setInterval(() => {
-				num++;
-				if (files.length >= count || num === 100) {
-					clearInterval(timer);
-					global.rm('-Rf', userPath);
-					// Un-watch some files.
-					watcher.unwatch(watchPath);
-					conn.emit('result', result);
-				}
-			}, 500);
+			if (files.length) {
+				let num = 0;
+				const timer = setInterval(() => {
+					num++;
+					if (files.length >= count || num === 100) {
+						clearInterval(timer);
+						global.rm('-Rf', userPath);
+						// Un-watch some files.
+						watcher.unwatch(watchPath);
+						conn.emit('result', result);
+					}
+				}, 500);
+			}
 		});
 	})
 	.then(() => global.cd(userPath))
-	.then(() => result = execSync(`npm ${params.command}`).toString())
+	.then(() => {
+		if (params.command.toLowerCase() !== 'login') {
+			result = execSync(`npm ${params.command}`).toString();
+		}
+	})
 	// error catch
 	.catch(e => {
 		global.echo(chalk.red('Build failed. See below for errors.\n'));
