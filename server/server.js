@@ -125,6 +125,7 @@ const handleCommand = (conn, params, username) => {
 	.then(() => global.cd(userPath))
 	.then(() => {
 		if (params.command.toLowerCase() !== 'login') {
+			console.log(`npm ${params.command}`);
 			result = execSync(`npm ${params.command}`).toString();
 		}
 	})
