@@ -96,7 +96,7 @@ const handleCommand = (conn, params, username) => {
 					clearInterval(timer);
 					// global.rm('-Rf', userPath);
 					// Un-watch some files.
-					watcher.unwatch(watchPath);
+					// watcher.unwatch(watchPath);
 					conn.emit('result', result);
 				}
 			}, 500);
