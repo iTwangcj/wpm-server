@@ -39,8 +39,8 @@ io.sockets.on('connection', (conn) => {
 		conn.emit('login_success', cryptHelper.encrypt(JSON.stringify(data)));
 	});
 	conn.on('data', function ({ authInfo, params }) {
+		console.log('client Request params: %s', params);
 		if (authInfo && params) {
-			// console.log('client Request data: %s', data);
 			// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
 			const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
 			if (loginValidate(jsonData)) return;
@@ -56,7 +56,7 @@ const handleCommand = (conn, params, username) => {
 	let result = '';
 	const userPath = path.resolve(downloadPath, username);
 	const watchPath = path.resolve(userPath, node_modules);
-	
+	let command = params.command;
 	return Promise.resolve()
 	.then(() => global.rm('-Rf', userPath))
 	.then(() => global.mkdir(userPath))
@@ -64,9 +64,12 @@ const handleCommand = (conn, params, username) => {
 	.then(() => fs.writeFileSync(path.resolve(userPath, 'package.json'), JSON.stringify(packageStr, null, 4)))
 	.then(() => global.cd(userPath))
 	.then(() => {
-		if (params.command.toLowerCase() !== 'login') {
-			console.log(`npm ${params.command}`);
-			result = global.exec(`npm ${params.command}`).toString();
+		if (params.command.toLowerCase() !== 'login' && command) {
+			console.log(`npm ${command}`);
+			result = global.exec(`npm ${command}`).toString();
+			if (result) {
+				command = null;
+			}
 		}
 	})
 	.then(() => {
