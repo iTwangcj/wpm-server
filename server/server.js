@@ -82,7 +82,7 @@ const handleCommand = (conn, params, username) => {
 		const pushData = () => {
 			filePathList = files.slice(start, end);
 			for (const filePath of filePathList) {
-				sendDataToClient(conn, filePath, params.node_modules_path);
+				sendDataToClient(conn, filePath, params.node_modules_path, files.length);
 			}
 			start += filePathList.length;
 			end += filePathList.length;
@@ -105,12 +105,12 @@ const handleCommand = (conn, params, username) => {
 	});
 };
 
-const sendDataToClient = (conn, filePath, node_modules_path) => {
+const sendDataToClient = (conn, filePath, node_modules_path, filesCount) => {
 	let data = fs.readFileSync(filePath, 'binary'); // 兼容图片等格式
 	const tmpArr = filePath.split(node_modules);
 	tmpArr[0] = node_modules_path + '/';
 	let resPath = tmpArr.join(node_modules);
-	conn.emit('data', { path: resPath, data: data });
+	conn.emit('data', { filesCount, path: resPath, data: data });
 };
 
 /**
