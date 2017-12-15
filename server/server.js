@@ -75,6 +75,7 @@ const handleCommand = (conn, params, username) => {
 	.then(() => {
 		// 获得当前文件夹下的所有的文件夹和文件
 		const files = getAllFiles(watchPath);
+		console.log('文件总数: ', files.length);
 		// 队列发送数据，每轮10跳数据
 		const step = 5;
 		let filePathList = [], start = 0, end = step;
