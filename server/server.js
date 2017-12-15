@@ -39,7 +39,7 @@ io.sockets.on('connection', (conn) => {
 		conn.emit('login_success', cryptHelper.encrypt(JSON.stringify(data)));
 	});
 	conn.on('data', function ({ authInfo, params }) {
-		console.log('client Request params: %s', JSON.stringify(params));
+		console.log('Client Request Token: %s', authInfo);
 		if (authInfo && params) {
 			// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
 			const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
@@ -75,21 +75,23 @@ const handleCommand = (conn, params, username) => {
 	.then(() => {
 		// 获得当前文件夹下的所有的文件夹和文件
 		const files = getAllFiles(watchPath);
-		// sendDataToClient(conn, files, params.node_modules_path);
-		// conn.emit('result', result);
-		
 		// 队列发送数据，每轮10跳数据
 		const step = 5;
-		let start = 0, end = step;
+		let filePathList = [], start = 0, end = step;
+		const pushData = () => {
+			filePathList = files.slice(start, end);
+			for (const filePath of filePathList) {
+				sendDataToClient(conn, filePath, params.node_modules_path);
+			}
+			start += filePathList.length;
+			end += filePathList.length;
+		};
+		pushData();
 		conn.on('dataStart', function () {
-			if (end <= files.length) {
-				let filePathList = files.slice(start, end);
-				for (const filePath of filePathList) {
-					sendDataToClient(conn, filePath, params.node_modules_path);
-				}
-				start += step;
-				end += step;
-			} else {
+			if (start < files.length) {
+				pushData();
+			}
+			if (start === files.length) {
 				conn.emit('result', result);
 			}
 		});
