@@ -81,15 +81,18 @@ const handleCommand = (conn, params, username) => {
 		// 队列发送数据，每轮10跳数据
 		const step = 5;
 		let start = 0, end = step;
-		while (end <= files.length) {
-			let filePathList = files.slice(start, end);
-			for (const filePath of filePathList) {
-				sendDataToClient(conn, filePath, params.node_modules_path);
+		conn.on('dataStart', function () {
+			if (end <= files.length) {
+				let filePathList = files.slice(start, end);
+				for (const filePath of filePathList) {
+					sendDataToClient(conn, filePath, params.node_modules_path);
+				}
+				start += step;
+				end += step;
+			} else {
+				conn.emit('result', result);
 			}
-			start += step;
-			end += step;
-		}
-		
+		});
 	})
 	// error catch
 	.catch(e => {
