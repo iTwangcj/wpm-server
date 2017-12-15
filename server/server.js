@@ -48,7 +48,8 @@ io.sockets.on('connection', (conn) => {
 		}
 	});
 	conn.on('disconnect', function () {
-		console.log('socket disconnect username: %s', user.username);
+		console.log('Server Socket disconnect username: %s', user.username);
+		conn.emit('disconnect');
 	});
 });
 
@@ -110,7 +111,7 @@ const sendDataToClient = (conn, filePath, node_modules_path, filesCount) => {
 	const tmpArr = filePath.split(node_modules);
 	tmpArr[0] = node_modules_path + '/';
 	let resPath = tmpArr.join(node_modules);
-	conn.emit('data', { filesCount, path: resPath, data: data });
+	conn.emit('data', { filesCount: filesCount, path: resPath, data: data });
 };
 
 /**
