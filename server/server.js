@@ -1,6 +1,7 @@
 require('shelljs/global');
 const chalk = require('chalk');
-const io = require('socket.io').listen(3000);
+const config = require('./config');
+const io = require('socket.io').listen(config.socketPort);
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
@@ -74,29 +75,10 @@ const handleCommand = (conn, params, username) => {
 		}
 	})
 	.then(() => {
-		// 获得当前文件夹下的所有的文件夹和文件
-		const files = getAllFiles(watchPath);
-		console.log('文件总数: ', files.length);
-		// 队列发送数据，每轮10跳数据
-		const step = 10;
-		let filePathList = [], start = 0, end = step;
-		const pushData = () => {
-			filePathList = files.slice(start, end);
-			for (const filePath of filePathList) {
-				sendDataToClient(conn, filePath, params.node_modules_path, files.length);
-			}
-			start += filePathList.length;
-			end += filePathList.length;
-		};
-		pushData();
-		conn.on('dataStart', function () {
-			if (start < files.length) {
-				pushData();
-			}
-			if (start === files.length) {
-				conn.emit('result', result);
-			}
-		});
+		global.cd(userPath);
+		global.exec(`tar -zcf node_modules.tar.gz ${node_modules}`);
+		conn.emit('data', `/${username}/node_modules.tar.gz`);
+		conn.emit('result', result);
 	})
 	// error catch
 	.catch(e => {
@@ -104,30 +86,4 @@ const handleCommand = (conn, params, username) => {
 		global.echo(chalk.red(e.stack));
 		process.exit(1);
 	});
-};
-
-const sendDataToClient = (conn, filePath, node_modules_path, filesCount) => {
-	let data = fs.readFileSync(filePath, 'binary'); // 兼容图片等格式
-	const tmpArr = filePath.split(node_modules);
-	tmpArr[0] = node_modules_path + '/';
-	let resPath = tmpArr.join(node_modules);
-	conn.emit('data', { filesCount: filesCount, path: resPath, data: data });
-};
-
-/**
- * 获取文件夹下面的所有的文件(包括子文件夹)
- * @param {String} dir
- * @returns {Array}
- */
-const getAllFiles = (dir) => {
-	let AllFiles = [];
-	const iteration = (dirPath) => {
-		const [dirs, files] = _(fs.readdirSync(dirPath)).partition(p => fs.statSync(path.join(dirPath, p)).isDirectory());
-		files.forEach(file => AllFiles.push(path.join(dirPath, file)));
-		for (const _dir of dirs) {
-			iteration(path.join(dirPath, _dir));
-		}
-	};
-	iteration(dir);
-	return AllFiles;
 };
