@@ -78,7 +78,7 @@ const handleCommand = (conn, params, username) => {
 		const files = getAllFiles(watchPath);
 		console.log('文件总数: ', files.length);
 		// 队列发送数据，每轮10跳数据
-		const step = 100;
+		const step = 10;
 		let filePathList = [], start = 0, end = step;
 		const pushData = () => {
 			filePathList = files.slice(start, end);
