@@ -39,7 +39,7 @@ io.sockets.on('connection', (conn) => {
 		conn.emit('login_success', cryptHelper.encrypt(JSON.stringify(data)));
 	});
 	conn.on('data', function ({ authInfo, params }) {
-		console.log('client Request params: %s', params);
+		console.log('client Request params: %s', JSON.stringify(params));
 		if (authInfo && params) {
 			// console.log('cryptoHelper.decrypt data: %s', cryptHelper.decrypt(authInfo));
 			const jsonData = JSON.parse(cryptHelper.decrypt(authInfo));
