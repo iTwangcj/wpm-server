@@ -3,5 +3,4 @@
 ### Example user template
 
 # IntelliJ project files
-.idea
-server/node_modules/
+.idea/
